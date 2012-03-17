@@ -45,9 +45,10 @@ public class MBBoxacceptCommandExecutor implements CommandExecutor {
 		String invitation = "";
 		
 		for (String inv : master.getInviteCmdExecutor().getInvitations()) {
-			if (inv.substring(0, inv.indexOf(" ")).equals(player.getName())) {
+			master.debugLogI(inv.substring(inv.indexOf(" ") + 1));
+			if (inv.substring(inv.indexOf(" ") + 1).equals(player.getName())) {
 				toPlayer = master.getServer().getPlayer(
-						inv.substring(inv.indexOf(" ")));
+						inv.substring(0, inv.indexOf(" ")));
 				
 				if (toPlayer == null) {
 					master.getLogManager().info(

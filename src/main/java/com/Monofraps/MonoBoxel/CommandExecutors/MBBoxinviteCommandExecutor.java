@@ -36,8 +36,7 @@ public class MBBoxinviteCommandExecutor implements CommandExecutor {
 	}
 	
 	@Override
-	public boolean onCommand(CommandSender sender, Command command,
-			String lable, String[] args) {
+	public boolean onCommand(CommandSender sender, Command command, String lable, String[] args) {
 	
 		Player player = null;
 		Player toPlyer = null;
@@ -46,8 +45,7 @@ public class MBBoxinviteCommandExecutor implements CommandExecutor {
 		String fromBoxel = "";
 		
 		if (!(sender instanceof Player)) {
-			master.getLogManager().info(
-					"You cannot do this from the server console.");
+			master.getLogManager().info("You cannot do this from the server console.");
 			return true;
 		}
 		
@@ -66,27 +64,22 @@ public class MBBoxinviteCommandExecutor implements CommandExecutor {
 			
 			toPlayer = args[0];
 		} catch (Exception e) {
-			master.getLogManager().debugLog(Level.INFO,
-					"Error finding Boxel to invite. (" + fromBoxel + ")");
+			master.getLogManager().debugLog(Level.INFO, "Error finding Boxel to invite. (" + fromBoxel + ")");
 			sender.sendMessage("Some error occured.");
 			return false;
 		}
 		
 		toPlyer = master.getServer().getPlayer(toPlayer);
 		if (toPlyer == null) {
-			master.getLogManager().debugLog(Level.INFO,
-					"Error finding toPlyer to invite. (" + toPlayer + ")");
-			sender.sendMessage("Error finding toPlyer to invite. (" + toPlayer
-					+ ")");
+			master.getLogManager().debugLog(Level.INFO, "Error finding toPlyer to invite. (" + toPlayer + ")");
+			sender.sendMessage("Error finding toPlyer to invite. (" + toPlayer + ")");
 			return false;
 		}
 		
 		toPlyer.sendMessage(fromPlayer
 				+ " invited you into his Boxel! Use /boxaccept to accept this request or /boxdeny to deny.");
 		
-		invitations.add(fromPlayer + " |invited| " + toPlayer);
-		
-		return false;
+		return invitations.add(fromPlayer + " " + toPlayer);
 	}
 	
 	/**
