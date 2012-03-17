@@ -11,7 +11,6 @@ import com.Monofraps.MonoBoxel.CommandExecutors.MBAdventureCommandExecutor;
 import com.Monofraps.MonoBoxel.CommandExecutors.MBBoxacceptCommandExecutor;
 import com.Monofraps.MonoBoxel.CommandExecutors.MBBoxelCommandExecutor;
 import com.Monofraps.MonoBoxel.CommandExecutors.MBBoxelDbgCommandExecutor;
-import com.Monofraps.MonoBoxel.CommandExecutors.MBBoxelgrpCommandExecutor;
 import com.Monofraps.MonoBoxel.CommandExecutors.MBBoxelinfoCommandExecutor;
 import com.Monofraps.MonoBoxel.CommandExecutors.MBBoxellookupCommandExecutor;
 import com.Monofraps.MonoBoxel.CommandExecutors.MBBoxelremoveCommandExecutor;
@@ -35,7 +34,6 @@ public class MonoBoxel extends JavaPlugin {
 	private MBConfiguration					dataConfig				= null;
 	
 	private MBBoxelCommandExecutor			boxelCmdExecutor		= null;
-	private MBBoxelgrpCommandExecutor		boxelgrpCommandExecutor	= null;
 	private MBBoxellookupCommandExecutor	boxellookupCmdExecutor	= null;
 	private MBBoxelremoveCommandExecutor	boxelremoveCmdExecutor	= null;
 	private MBBoxelinfoCommandExecutor		boxelinfoCmdExecutor	= null;
@@ -50,7 +48,6 @@ public class MonoBoxel extends JavaPlugin {
 	private MBAdventureWorldManager			adventureManager		= null;
 	private MBPermissionManager				boxelPermManager		= null;
 	private String							boxelPrefix				= "BOXEL_";
-	private String							boxelGroupPrefix		= "BOXELGRP_";
 	
 	/**
 	 * Hooks up the command executors and initializes the scheduled tasks.
@@ -69,10 +66,8 @@ public class MonoBoxel extends JavaPlugin {
 		reloadConfig();
 		
 		boxelPrefix = getConfig().getString("boxel-prefix");
-		boxelGroupPrefix = getConfig().getString("boxelgroup-prefix");
 		
 		boxelCmdExecutor = new MBBoxelCommandExecutor(this);
-		boxelgrpCommandExecutor = new MBBoxelgrpCommandExecutor(this);
 		boxellookupCmdExecutor = new MBBoxellookupCommandExecutor(this);
 		boxelremoveCmdExecutor = new MBBoxelremoveCommandExecutor(this);
 		boxelinfoCmdExecutor = new MBBoxelinfoCommandExecutor(this);
@@ -81,7 +76,6 @@ public class MonoBoxel extends JavaPlugin {
 		boxelinviteCmdExecutor = new MBBoxinviteCommandExecutor(this);
 		boxelacceptCmdExecutor = new MBBoxacceptCommandExecutor(this);
 		getCommand("boxel").setExecutor(boxelCmdExecutor);
-		getCommand("boxelgrp").setExecutor(boxelgrpCommandExecutor);
 		getCommand("boxlookup").setExecutor(boxellookupCmdExecutor);
 		getCommand("boxremove").setExecutor(boxelremoveCmdExecutor);
 		getCommand("boxinfo").setExecutor(boxelinfoCmdExecutor);
@@ -96,7 +90,6 @@ public class MonoBoxel extends JavaPlugin {
 		adventureManager = new MBAdventureWorldManager(this);
 		boxelPermManager = new MBPermissionManager(this);
 		
-		
 		logger.info("MonoBoxel enabled!");
 		logger.debugLog(Level.INFO, "Plugin loaded.");
 	}
@@ -109,8 +102,7 @@ public class MonoBoxel extends JavaPlugin {
 	public MultiverseCore getMVCore() {
 	
 		if (mvCore == null) {
-			mvCore = (MultiverseCore) getServer().getPluginManager().getPlugin(
-					"Multiverse-Core");
+			mvCore = (MultiverseCore) getServer().getPluginManager().getPlugin("Multiverse-Core");
 			
 			if (mvCore == null) {
 				logger.severe("Multiverse-Core *NOT* found! Is it installed and enabled? "
@@ -133,7 +125,7 @@ public class MonoBoxel extends JavaPlugin {
 	
 		saveConfig();
 		dataConfig.saveConfig();
-		//boxelManager.SaveBoxels();
+		// boxelManager.SaveBoxels();
 		localizationManager.SaveLocalization();
 		
 		if (mvCore != null)
@@ -150,12 +142,10 @@ public class MonoBoxel extends JavaPlugin {
 	public ChunkGenerator getDefaultWorldGenerator(String worldName, String id) {
 	
 		if (id != null)
-			return new MBBoxelGenerator(getConfig().getLong("max-boxel-size"),
-					id.equals("ssehc") ? true : false);
+			return new MBBoxelGenerator(getConfig().getLong("max-boxel-size"), id.equals("ssehc") ? true : false);
 		
 		else
-			return new MBBoxelGenerator(getConfig().getLong("max-boxel-size"),
-					false);
+			return new MBBoxelGenerator(getConfig().getLong("max-boxel-size"), false);
 	}
 	
 	/**
@@ -181,14 +171,6 @@ public class MonoBoxel extends JavaPlugin {
 	public String getBoxelPrefix() {
 	
 		return boxelPrefix;
-	}
-	
-	/**
-	 * @return The Boxel Group prefix
-	 */
-	public String getBoxelGroupPrefix() {
-	
-		return boxelGroupPrefix;
 	}
 	
 	/**
@@ -235,5 +217,23 @@ public class MonoBoxel extends JavaPlugin {
 	public MBConfiguration getDataConfig() {
 	
 		return dataConfig;
+	}
+	
+	/**
+	 * Logs a debug string with warning level.
+	 * @param msg
+	 */
+	public void debugLogW(String msg) {
+	
+		logger.debugLog(Level.WARNING, msg);
+	}
+	
+	/**
+	 * Logs a debug string with info level.
+	 * @param msg
+	 */
+	public void debugLogI(String msg) {
+	
+		logger.debugLog(Level.INFO, msg);
 	}
 }

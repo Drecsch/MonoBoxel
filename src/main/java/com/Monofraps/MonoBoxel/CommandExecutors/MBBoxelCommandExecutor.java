@@ -37,6 +37,7 @@ public class MBBoxelCommandExecutor implements CommandExecutor {
 		Player player = null;
 		String boxelName = "";
 		String boxelGenerator = "MonoBoxel";
+		String boxelPasswd = "";
 		String boxelSeed = "";
 		
 		if (!(sender instanceof Player)) {
@@ -58,6 +59,9 @@ public class MBBoxelCommandExecutor implements CommandExecutor {
 						boxelSeed = args[i + 1];
 					if (args[i].equals("-g"))
 						boxelGenerator = args[i + 1];
+					if (args[i].equals("-p"))
+						boxelPasswd = args[i + 1];
+					
 				}
 				
 				if (args[0].equals("getmeout"))
@@ -66,7 +70,7 @@ public class MBBoxelCommandExecutor implements CommandExecutor {
 				if (args[0].equals("-"))
 					boxelName = GenUtils.boxelizeName(player.getName(), master);
 				
-				if ((!args[0].equals("-s")) && (!args[0].equals("-g")))
+				if ((!args[0].equals("-s")) && (!args[0].equals("-g")) &&  (!args[0].equals("-p")) && (!args[0].equals("-")))
 					boxelName = GenUtils.boxelizeName(args[0], master);
 			}
 		} catch (Exception e) {
@@ -81,7 +85,7 @@ public class MBBoxelCommandExecutor implements CommandExecutor {
 		String msgFailedJoinBoxel = String.format("%s failed to join Boxel/World %s.", player.getName(), boxelName);
 		// ++++++++++++++++++++++++++
 		
-		if (master.getMBWorldManager().GenericJoin(player, boxelName, true, boxelSeed, boxelGenerator)) {
+		if (master.getMBWorldManager().GenericJoin(player, boxelName, boxelPasswd, true, boxelSeed, boxelGenerator)) {
 			master.getLogManager().debugLog(Level.INFO, msgJoinedBoxel);
 			return true;
 		} else {

@@ -1,6 +1,7 @@
 package com.Monofraps.MonoBoxel;
 
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.logging.Level;
 
@@ -11,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import com.Monofraps.MonoBoxel.Utils.GenUtils;
+import com.Monofraps.MonoBoxel.Utils.HashMD5;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 
@@ -50,8 +52,9 @@ public class MBBoxelManager {
 			master.getMBWorldManager().RemoveUnloadEntry(box.getName());
 		}
 	}
-		
+	
 	private HashMap<String, Integer>	unloadIds		= null;
+	private HashMap<String, String>		boxelPasswds	= null;
 	
 	private MonoBoxel					master			= null;
 	
@@ -64,6 +67,7 @@ public class MBBoxelManager {
 	
 		master = plugin;
 		unloadIds = new HashMap<String, Integer>();
+		boxelPasswds = new HashMap<String, String>();
 	}
 	
 	/**
@@ -80,7 +84,7 @@ public class MBBoxelManager {
 		result[0] = false;
 		result[1] = false;
 		
-		if (!name.startsWith(master.getBoxelPrefix()) && !name.startsWith(master.getBoxelGroupPrefix()))
+		if (!name.startsWith(master.getBoxelPrefix()))
 			return result;
 		
 		for (MultiverseWorld w : master.getMVCore().getMVWorldManager().getMVWorlds()) {
@@ -196,7 +200,9 @@ public class MBBoxelManager {
 	 * @param create
 	 * @return true on success, otherwise false
 	 */
-	public boolean GenericJoin(Player player, String boxelName, boolean create, String seed, String generator) {
+	@SuppressWarnings("unchecked")
+	public boolean GenericJoin(Player player, String boxelName, String boxelPasswd, boolean create, String seed,
+			String generator) {
 	
 		MVWorldManager mvWorldManager = master.getMVCore().getMVWorldManager();
 		
@@ -222,6 +228,7 @@ public class MBBoxelManager {
 				player.getName());
 		String msgFailedNoPermissionsC = String.format("Player %s has not enaugth permissions. (Create)",
 				player.getName());
+		String msgFailedWrongPasswd = String.format("Player %s has the wrong password.", player.getName());
 		String msgFailedCreateFailed = String.format(
 				"Generic joind failed because Boxel/World %s could not be created.", boxelName);
 		// ++++++++++++++++++++++++++
@@ -233,18 +240,34 @@ public class MBBoxelManager {
 			return false;
 		}
 		
-		// check if multiverse knows about this world, and create it if not and create==true
+		// load boxel settings
+		try {
+			boxelPasswds = (HashMap<String, String>) GenUtils.loadObject(master.getDataFolder().getAbsolutePath()
+					+ File.separatorChar + "data.bin");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		// check passwd
+		String boxelPasswdMD5 = HashMD5.Hash(boxelPasswd);
+		if (!CheckPasswd(boxelName, boxelPasswdMD5)) {
+			master.getLogManager().debugLog(Level.WARNING, msgFailedWrongPasswd);
+			player.sendMessage("Wrong password");
+			return false;
+		}
+		
+		// check if multiverse knows about this world, create it if not; if create==true
 		if (!mvWorldManager.isMVWorld(boxelName)) {
-			master.getLogManager().debugLog(Level.INFO, msgNoMVWorld);
+			master.debugLogI(msgNoMVWorld);
 			if (create) {
 				// check create permissions
 				if (!master.getPermissionManager().canCreateBoxel(player, boxelName)) {
-					master.getLogManager().debugLog(Level.WARNING, msgFailedNoPermissionsC);
+					master.debugLogW(msgFailedNoPermissionsC);
 					master.getPermissionManager().SendNotAllowedMessage(player);
 					return false;
 				} else {
-					if (!GenericCreate(player, boxelName, seed, generator)) {
-						master.getLogManager().debugLog(Level.WARNING, msgFailedCreateFailed);
+					if (!GenericCreate(player, boxelName, boxelPasswd, seed, generator)) {
+						master.debugLogW(msgFailedCreateFailed);
 						return false;
 					}
 				}
@@ -252,7 +275,7 @@ public class MBBoxelManager {
 				return false;
 		}
 		
-		// MV says it knows about this world, so try to get it
+		// MV should know about this world, so try to get it
 		MultiverseWorld boxel = mvWorldManager.getMVWorld(boxelName);
 		
 		// ok, the world is not loaded; try and load it
@@ -268,7 +291,7 @@ public class MBBoxelManager {
 		// try to get the Boxel world again
 		boxel = mvWorldManager.getMVWorld(boxelName);
 		
-		// the Boxel world could not be found the second time... that's strange!
+		// the Boxel world could not be found the second time...
 		if (boxel == null) {
 			master.getLogManager().debugLog(Level.SEVERE, msgFailedNoMVWorldFound);
 			return false;
@@ -293,7 +316,7 @@ public class MBBoxelManager {
 	 * @param boxelName
 	 * @return true on success, otherwise false
 	 */
-	public boolean GenericCreate(Player player, String boxelName, String seed, String generator) {
+	public boolean GenericCreate(Player player, String boxelName, String boxelPasswd, String seed, String generator) {
 	
 		MVWorldManager mvWorldManager = master.getMVCore().getMVWorldManager();
 		
@@ -336,6 +359,19 @@ public class MBBoxelManager {
 		} else {
 			master.getLogManager().debugLog(Level.INFO, msgFailedCreateWorld);
 			return false;
+		}
+		
+		// set password if requested
+		if (!boxelPasswd.isEmpty()) {
+			boxelPasswd = HashMD5.Hash(boxelPasswd);
+			
+			boxelPasswds.put(boxelName, boxelPasswd);
+			
+			try {
+				GenUtils.saveObject(boxelPasswds, master.getDataFolder().getAbsolutePath() + File.separatorChar + "data.bin");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 		
 		MultiverseWorld world = mvWorldManager.getMVWorld(boxelName);
@@ -422,5 +458,18 @@ public class MBBoxelManager {
 		master.getLogManager().debugLog(Level.INFO, msgLoadEntryLocation);
 		return new Location(entryWorld.getCBWorld(), outPosition.getX(), outPosition.getY(), outPosition.getZ(),
 				(float) outYaw, (float) outPitch);
+	}
+	
+	private boolean CheckPasswd(String boxelName, String passwd) {
+	
+		boxelName = GenUtils.boxelizeName(boxelName, master);
+		
+		if (!boxelPasswds.containsKey(boxelName))
+			return true;
+		
+		if (boxelPasswds.get(boxelName).equals(passwd))
+			return true;
+		
+		return false;
 	}
 }

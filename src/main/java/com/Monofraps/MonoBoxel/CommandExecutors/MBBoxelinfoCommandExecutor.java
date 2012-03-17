@@ -74,7 +74,6 @@ public class MBBoxelinfoCommandExecutor implements CommandExecutor {
 		sender.sendMessage(String.valueOf(numBoxels) + " Boxels are currently registered on this server.");
 		
 		sender.sendMessage("The current Boxel prefix is: " + master.getBoxelPrefix());
-		sender.sendMessage("The current group Boxel prefix is: " + master.getBoxelGroupPrefix());
 		
 		return true;
 	}
